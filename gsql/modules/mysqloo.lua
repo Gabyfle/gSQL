@@ -19,8 +19,7 @@
     limitations under the License.
 
 ------------------------------------------------------------]]
-gsql.module = gsql.module or {}
-gsql.module.mysqloo = gsql.module.mysqloo or {
+local MODULE = {
     -- [database] MYSQLOO Database object
     connection = nil,
     -- [table][PreparedQuery] Prepared queries
@@ -28,17 +27,25 @@ gsql.module.mysqloo = gsql.module.mysqloo or {
     -- [number] Number of affected rows in the last query
     affectedRows = nil
 }
+local helpers = include('../helpers.lua')
 
-function gsql.module.mysqloo:init(driver, dbhost, dbname, dbuser, dbpass, port, callback)
-    if not port then port = 3306 end
+function MODULE:init(dbhost, dbname, dbuser, dbpass, port, callback)
+    local connUID = util.CRC(dbhost .. dbname .. dbuser)
+
+    if Gsql.cache[connUID] then
+        self.connection = Gsql.cache[connUID]
+    end
     -- Including the mysqloo driver
-    success, err = pcall(require, 'mysqloo')
+    local success, err = pcall(require, 'mysqloo')
     if not success then
         file.Append('gsql_logs.txt', '[gsql][new] : ' .. err)
         error('[gsql] A fatal error appenned while trying to include MySQLOO driver!')
     end
     -- Creating a new Database object
-    self.connection = mysqloo.connect(dbhost, dbuser, dbpass, dbname, port)
+    if not self.connection then
+        self.connection = mysqloo.connect(dbhost, dbuser, dbpass, dbname, port)
+        Gsql.cache[connUID] = self.connection
+    end
     function self.connection:onConnected()
         callback(true, 'success')
     end
@@ -46,7 +53,10 @@ function gsql.module.mysqloo:init(driver, dbhost, dbname, dbuser, dbpass, port, 
         file.Append('gsql_logs.txt', '[gsql][new] : ' .. err)
         callback(false, 'err : ' .. err)
     end
-    self.connection:connect()
+
+    if self.connection:status() ~= 0 and self.connection:status() ~= 1 then
+        self.connection:connect()
+    end
 end
 
 --- Set a new Query object and start the query
@@ -54,16 +64,12 @@ end
 -- @param callback function : Function that'll be called when the query finished
 -- @param paramaters table : A table containing all (optionnal) parameters
 -- @return void
-function gsql.module.mysqloo:query(queryStr, parameters, callback)
-    if (queryStr == nil) then error('[gsql][query] An error occured while trying to query : Argument \'queryStr\' is missing!') end
-    parameters = parameters or {}
-    -- By using this instead of a table in string.gsub, we avoid nil-related errors
+function MODULE:query(queryStr, parameters, callback)
     for k, v in pairs(parameters) do
-        if type(v) == 'string' then
+        if isstring(v) == 'string' then
             v = self.connection:escape(v)
         end
-        queryStr = gsql.replace(queryStr, k, v)
-        print(queryStr)
+        queryStr = helpers.replace(queryStr, k, tostring(v))
     end
     local query = self.connection:query(queryStr) -- Doing the query
     query.onSuccess = function(query, data)
@@ -84,7 +90,7 @@ end
 -- @param queryStr string : A SQL query string
 -- @return number : index of this object in the "prepared" table
 -- @see gsql:execute
-function gsql.module.mysqloo:prepare(queryStr)
+function MODULE:prepare(queryStr)
     self.prepared[#self.prepared + 1] = self.connection:prepare(queryStr)
     return #self.prepared
 end
@@ -92,7 +98,7 @@ end
 --- Delete a PreparedQuery object from the "prepared" table
 -- @param index number : index of this object in the "prepared" table
 -- @return bool : the status of this deletion
-function gsql.module.mysqloo:delete(index)
+function MODULE:delete(index)
     if not self.prepared[index] then -- Checking if the index is correct
         file.Append('gsql_logs.txt', '[gsql][delete] : Invalid \'index\'. Requested deletion of prepared query number ' .. index .. ' as failed. Prepared query doesn\'t exist')
         error('[gsql] An error occured while trying to delete a prepared query! See logs for more informations')
@@ -109,7 +115,7 @@ end
 -- @param callback function : function called when the PreparedQuery finished
 -- @param parameters table : table of all parameters that'll be added to the prepared query
 -- @return void
-function gsql.module.mysqloo:execute(index, parameters, callback)
+function MODULE:execute(index, parameters, callback)
     if not self.prepared[index] then -- Checking if the index is correct
         file.Append('gsql_logs.txt', '[gsql][execute] : Invalid \'index\'. Requested deletion of prepared query number ' .. index .. ' as failed. Prepared query doesn\'t exist')
         error('[gsql] An error occured while trying to execute a prepared query! See logs for more informations')
@@ -117,13 +123,13 @@ function gsql.module.mysqloo:execute(index, parameters, callback)
     end
     local i = 1
     for k, v in ipairs(parameters) do
-        if (type(v) == 'number') then -- Thanks Lua for the absence of a switch statement
+        if isnumber(v) then -- Thanks Lua for the absence of a switch statement
             self.prepared[index]:setNumber(i, v)
-        elseif (type(v) == 'string') then
+        elseif isstring(v) then
             self.prepared[index]:setString(i, v)
-        elseif (type(v) == 'bool') then
+        elseif isbool(v) then
             self.prepared[index]:setBool(i, v)
-        elseif (type(v) == 'nil') then
+        elseif v == nil then
             self.prepared[index]:setNull(i)
         else
             file.Append('gsql_logs.txt', '[gsql][execute] : Invalid type of parameter (parameter : ' .. k .. ' value : ' .. v .. ')')
@@ -144,3 +150,5 @@ function gsql.module.mysqloo:execute(index, parameters, callback)
     end
     self.prepared[index]:start()
 end
+
+return MODULE

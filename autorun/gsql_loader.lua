@@ -21,12 +21,7 @@
 ------------------------------------------------------------]]
 
 if SERVER then
+    print('gSQL - Loading !')
     include('gsql/gsql.lua')
     print('gSQL is fun, gSQL is life!')
-    local files, directories = file.Find('gsql/modules/*', 'LUA')
-    print('gSQL - Loading modules')
-    for _, v in pairs(files) do
-        print('gSQL --- MODULE : ' .. v)
-        include('gsql/modules/' .. v)
-    end
 end

@@ -10,6 +10,7 @@ gSQL - Simple Query Library
 ## Supported modules
 1. **[MySQLOO](https://github.com/FredyH/MySQLOO)** : An object oriented MySQL module for Garry's Mod
 1. **[SQLite](https://wiki.garrysmod.com/page/Category:sql)** : Access powerful database software included with Garry's Mod
+1. **[tMySQL4](https://github.com/bkacjios/gm_tmysql4)** : An other MySQL module for Garry's Mod
 
 ## Features
 * Lightweight, only 5 methods
@@ -18,14 +19,15 @@ gSQL - Simple Query Library
 * Error logs management
 * Security management: send your parameters, gSQL does the rest
 * Parameter system in unprepared queries
+* **Cache connections** to avoid connecting to the same database several times!
 
 ## Available functions
 
 **gSQL** includes a total of 5 functions that will allow you to interact with your SQL server in a basic way.
 
-### Constructor : `gsql:new()`
+### Constructor : `Gsql:new()`
 
-* Prototype : `gsql:new(obj, driver, dbhost, dbname, dbuser, dbpass, port, callback)`
+* Prototype : `Gsql:new(driver, dbhost, dbname, dbuser, dbpass, port, callback)`
 * Description : This function creates a new **gSQL** object and return it.
 * Example :
 ```lua
@@ -33,17 +35,25 @@ local database = {
     host = 'localhost',
     name = 'gsql',
     user = 'root',
-    pass = ''
+    pass = '',
+    port = 3306
 }
-local db = gsql:new(db, 'sqlite', database.host, database.name, database.user, database.pass, 3306, function(success, message)
+local db = Gsql:new('sqlite', database, function(success, message)
+    print(success)
+    print(message)
+end)
+-- We could call it like that :
+-- Gsql:new('sqlite', database.host, database.name, database.user, database.pass, database.port, function()end)
+-- better_gsql.lua (by @Guthen) add the possibility to directly call the constructor :
+local db = Gsql('sqlite', database, function(success, message)
     print(success)
     print(message)
 end)
 ```
 
-### Query : `gsql:query()`
+### Query : `Gsql:query()`
 
-* Prototype : `gsql:query(sqlStr, parameters, callback)`
+* Prototype : `Gsql:query(sqlStr, parameters, callback)`
 * Description : This function do a basic query to the SQL server that has been set in `gsql:new`
 * Example :
 ```lua
@@ -55,18 +65,18 @@ db:query('SELECT * FROM development WHERE steamid = {{userid}}', parameters, fun
 end)
 ```
 
-### Prepare : `gsql:prepare()`
+### Prepare : `Gsql:prepare()`
 
-* Prototype : `gsql:prepare(sqlStr)`
+* Prototype : `Gsql:prepare(sqlStr)`
 * Description : Creates a prepared query and returns its ID in an internal table.
 * Example :
 ```lua
 local index = db:prepare('SELECT * FROM development WHERE number = ?')
 ```
 
-### Delete : `gsql:delete()`
+### Delete : `Gsql:delete()`
 
-* Prototype : `gsql:prepare(index)`
+* Prototype : `Gsql:prepare(index)`
 * Description : Delete a prepared query, identified by its index, from an internal table
 * Example :
 ```lua
@@ -75,9 +85,9 @@ if not db:delete(index) then
 end
 ```
 
-### Execute : `gsql:execute()`
+### Execute : `Gsql:execute()`
 
-* Prototype : `gsql:execute(index, parameters, callback)`
+* Prototype : `Gsql:execute(index, parameters, callback)`
 * Description : Execute a prepared query, identified by its index
 * Example :
 ```lua
