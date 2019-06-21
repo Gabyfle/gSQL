@@ -27,24 +27,24 @@ local MODULE = {
     -- [number] Number of affected rows in the last query
     affectedRows = nil
 }
-
 local helpers = include('../helpers.lua')
 
 function MODULE:init(dbhost, dbname, dbuser, dbpass, port, callback)
     local connUID = util.CRC(dbhost .. dbname .. dbuser)
-    if gsql.cache[connUID] then
-        self.connection = gsql.cache[connUID]
+
+    if Gsql.cache[connUID] then
+        self.connection = Gsql.cache[connUID]
     end
     -- Including the mysqloo driver
-    success, err = pcall(require, 'mysqloo')
+    local success, err = pcall(require, 'mysqloo')
     if not success then
         file.Append('gsql_logs.txt', '[gsql][new] : ' .. err)
         error('[gsql] A fatal error appenned while trying to include MySQLOO driver!')
     end
     -- Creating a new Database object
     if not self.connection then
-        self.connection = mysqloo.connect(dbhost, dbuser, dbpass, dbname, port or 3306)
-        gsql.cache[connUID] = self.connection
+        self.connection = mysqloo.connect(dbhost, dbuser, dbpass, dbname, port)
+        Gsql.cache[connUID] = self.connection
     end
     function self.connection:onConnected()
         callback(true, 'success')
@@ -66,7 +66,7 @@ end
 -- @return void
 function MODULE:query(queryStr, parameters, callback)
     for k, v in pairs(parameters) do
-        if type(v) == 'string' then
+        if isstring(v) == 'string' then
             v = self.connection:escape(v)
         end
         queryStr = helpers.replace(queryStr, k, tostring(v))

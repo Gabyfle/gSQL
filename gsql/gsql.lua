@@ -18,10 +18,10 @@
     limitations under the License.
 
 ------------------------------------------------------------]]
-gsql = gsql or {
-    cache = {} -- connections will be cached here
+Gsql = Gsql or {
+    cache = {}
 }
-gsql.__index = gsql
+Gsql.__index = Gsql
 
 local helpers = include('helpers.lua')
 local modules = {}
@@ -34,7 +34,6 @@ local function loadModule(moduleName)
 end
 
 --- Class constructor function. Creates a new gSQL object
--- @param obj table : the object that'll be used after this method
 -- @param driver string : the driver which will be used in this instance
 -- @param dbhost string : host name of the database
 -- @param dbname string : database name
@@ -43,18 +42,15 @@ end
 -- @param port number : port number on which the database is hosted
 -- @param callback function : called 
 -- @return gsql : a gsql object
-function gsql:new(obj, driver, dbhost, dbname, dbuser, dbpass, port, callback)
-    obj = obj or {}
-    port = port or 3306
+function Gsql:new(driver, dbhost, dbname, dbuser, dbpass, port, callback)
     if istable(dbhost) then
         callback = dbname
-        dbhost   = dbhost.host
         dbname   = dbhost.name
         dbuser   = dbhost.user
         dbpass   = dbhost.pass
         port     = dbhost.port
+        dbhost   = dbhost.host
     end
-
     -- Creating log file if doesn't already exists
     if not file.Exists('gsql_logs.txt', 'DATA') then
         file.Write('gsql_logs.txt', '')
@@ -66,7 +62,7 @@ function gsql:new(obj, driver, dbhost, dbname, dbuser, dbpass, port, callback)
     end
     self.used = driver
     modules[self.used] = loadModule(driver)
-    modules[self.used]:init(dbhost, dbname, dbuser, dbpass, port, callback)
+    modules[self.used]:init(dbhost, dbname, dbuser, dbpass, port or 3306, callback)
 
     return self
 end
@@ -76,7 +72,7 @@ end
 -- @param callback function : Function that'll be called when the query finished
 -- @param paramaters table : A table containing all (optionnal) parameters
 -- @return void
-function gsql:query(queryStr, parameters, callback)
+function Gsql:query(queryStr, parameters, callback)
     if self.used == nil then error('gSQL hasn\'t been initialized. Can\'t query anything from a database.') end
     if queryStr == nil then error('[gsql] An error occured while trying to query : Argument \'queryStr\' is missing!') end
     if not isfunction(callback) then 
@@ -92,7 +88,7 @@ end
 -- @param queryStr string : A SQL query string
 -- @return number : index of this object in the "prepared" table
 -- @see gsql:execute
-function gsql:prepare(queryStr)
+function Gsql:prepare(queryStr)
     if (queryStr == nil) then
         file.Append('gsql_logs.txt', '[gsql][prepare] : Argument \'queryStr\' is missing.')
         error('[gsql] An error occured when preparing a query!')
@@ -107,7 +103,7 @@ end
 --- Delete a prepared query, identified by its index
 -- @param index number : index of this object in the "prepared" table
 -- @return bool : the status of this deletion
-function gsql:delete(index)
+function Gsql:delete(index)
     if (index == nil) then
         file.Append('gsql_logs.txt', '[gsql][delete] : Argument \'index\' is missing.')
         error('[gsql] An error occured when deleting a query!')
@@ -124,7 +120,7 @@ end
 -- @param callback function : function called when the PreparedQuery finished
 -- @param parameters table : table of all parameters that'll be added to the prepared query
 -- @return void
-function gsql:execute(index, parameters, callback)
+function Gsql:execute(index, parameters, callback)
     if (index == nil) then
         file.Append('gsql_logs.txt', '[gsql][execute] : Argument \'index\' is missing.')
         error('[gsql] An error occured when executing a query!')

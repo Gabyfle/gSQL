@@ -44,15 +44,4 @@ function HELPERS.replace(queryStr, name, value)
     return string.gsub(queryStr, pattern, value)
 end
 
---- Helper function which checks if a connection has already been cached
--- @param driver string : the driver which will be used in this instance
--- @param dbhost string : host name of the database
--- @param dbname string : database name
--- @param dbuser string : database user that'll be used to get datas from the database
--- @param dbpass string : database user's password
--- @param port   string : database port
-function HELPERS.alreadyCached(driver, dbhost, dbname, dbuser, dbpass, port)
-    return gsql.cache[util.CRC(driver .. dbhost .. dbname .. dbuser .. dbpass .. port)] == nil
-end
-
 return HELPERS
