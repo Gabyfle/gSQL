@@ -31,11 +31,11 @@ local MODULE = {
 local helpers = include('../helpers.lua')
 
 function MODULE:init(dbhost, dbname, dbuser, dbpass, port, callback)
-    local connUID = util.CRC(dbhost .. dbname .. dbuser)
+    --local connUID = util.CRC(dbhost .. dbname .. dbuser)
 
-    if Gsql.cache[connUID] then
-        self.connection = Gsql.cache[connUID]
-    end
+    --if Gsql.cache[connUID] then
+        --self.connection = Gsql.cache[connUID]
+    --end
     -- Including the tmysql4 driver
     local success, err = pcall(require, 'tmysql4')
     if not success then
@@ -43,15 +43,13 @@ function MODULE:init(dbhost, dbname, dbuser, dbpass, port, callback)
         error('[gsql] A fatal error appenned while trying to include tMySQL4 driver!')
     end
     -- Creating a new Database object
-    if not self.connection then
-        self.connection, err = tmysql.initialize(dbhost, dbuser, dbpass, dbname, port or 3306, nil, CLIENT_MULTI_STATEMENTS)
-        if err then
-            file.Append('gsql_logs.txt', '[gsql][new] : ' .. err)
-            callback(false, 'err : ' .. err)
-            return
-        end
-        Gsql.cache[connUID] = self.connection
+    self.connection, err = tmysql.initialize(dbhost, dbuser, dbpass, dbname, port or 3306, nil, CLIENT_MULTI_STATEMENTS)
+    if err then
+        file.Append('gsql_logs.txt', '[gsql][new] : ' .. err)
+        callback(false, 'err : ' .. err)
+        return
     end
+    -- Gsql.cache[connUID] = self.connection
 
     callback(true, 'success')
 end

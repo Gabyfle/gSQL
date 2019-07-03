@@ -30,11 +30,11 @@ local MODULE = {
 local helpers = include('../helpers.lua')
 
 function MODULE:init(dbhost, dbname, dbuser, dbpass, port, callback)
-    local connUID = util.CRC(dbhost .. dbname .. dbuser)
+    --local connUID = util.CRC(dbhost .. dbname .. dbuser)
 
-    if Gsql.cache[connUID] then
-        self.connection = Gsql.cache[connUID]
-    end
+    --if Gsql.cache[connUID] then
+       -- self.connection = Gsql.cache[connUID]
+    --end
     -- Including the mysqloo driver
     local success, err = pcall(require, 'mysqloo')
     if not success then
@@ -42,10 +42,7 @@ function MODULE:init(dbhost, dbname, dbuser, dbpass, port, callback)
         error('[gsql] A fatal error appenned while trying to include MySQLOO driver!')
     end
     -- Creating a new Database object
-    if not self.connection then
-        self.connection = mysqloo.connect(dbhost, dbuser, dbpass, dbname, port)
-        Gsql.cache[connUID] = self.connection
-    end
+    self.connection = mysqloo.connect(dbhost, dbuser, dbpass, dbname, port)
     function self.connection:onConnected()
         callback(true, 'success')
     end
