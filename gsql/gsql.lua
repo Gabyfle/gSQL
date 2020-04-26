@@ -43,6 +43,7 @@ end
 -- @param callback function : called 
 -- @return gsql : a gsql object
 function Gsql:new(driver, dbhost, dbname, dbuser, dbpass, port, callback)
+    local obj = {}
     if istable(dbhost) then
         callback = dbname
         dbname   = dbhost.name
@@ -51,6 +52,9 @@ function Gsql:new(driver, dbhost, dbname, dbuser, dbpass, port, callback)
         port     = dbhost.port
         dbhost   = dbhost.host
     end
+
+    setmetatable(obj, self)
+
     -- Creating log file if doesn't already exists
     if not file.Exists('gsql_logs.txt', 'DATA') then
         file.Write('gsql_logs.txt', '')
@@ -60,11 +64,11 @@ function Gsql:new(driver, dbhost, dbname, dbuser, dbpass, port, callback)
         file.Append('gsql_logs.txt', '[gsql][new] : the specified driver isn\'t supported by gSQL.')
         error('[gsql] A fatal error appenned while creating the gSQL object! Check your logs for more informations!')
     end
-    self.used = driver
-    modules[self.used] = loadModule(driver)
-    modules[self.used]:init(dbhost, dbname, dbuser, dbpass, port or 3306, callback)
+    obj.used = driver
+    modules[obj.used] = loadModule(driver)
+    modules[obj.used]:init(dbhost, dbname, dbuser, dbpass, port or 3306, callback)
 
-    return self
+    return obj
 end
 
 --- Make a query from an SQL string
