@@ -76,7 +76,7 @@ local index = db:prepare('SELECT * FROM development WHERE number = ?')
 
 ### Delete : `Gsql:delete()`
 
-* Prototype : `Gsql:prepare(index)`
+* Prototype : `Gsql:delete(index)`
 * Description : Delete a prepared query, identified by its index, from an internal table
 * Example :
 ```lua
