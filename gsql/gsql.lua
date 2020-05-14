@@ -18,9 +18,7 @@
     limitations under the License.
 
 ------------------------------------------------------------]]
-Gsql = Gsql or {
-    -- cache = {}
-}
+Gsql = Gsql or {}
 Gsql.__index = Gsql
 
 local helpers = include('helpers.lua')
