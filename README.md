@@ -19,7 +19,6 @@ gSQL - Simple Query Library
 * Error logs management
 * Security management: send your parameters, gSQL does the rest
 * Parameter system in unprepared queries
-* **Cache connections** to avoid connecting to the same database several times!
 
 ## Available functions
 
