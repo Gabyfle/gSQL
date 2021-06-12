@@ -44,11 +44,11 @@ function MODULE:init(dbhost, dbname, dbuser, dbpass, port, callback)
     -- Creating a new Database object
     self.connection = mysqloo.connect(dbhost, dbuser, dbpass, dbname, port)
     function self.connection:onConnected()
-        callback(true, 'success')
+        callback(true, 'success', self)
     end
     function self.connection:onConnectionFailed(err)
         file.Append('gsql_logs.txt', '[gsql][new] : ' .. err)
-        callback(false, 'err : ' .. err)
+        callback(false, 'err : ' .. err, nil)
     end
 
     if self.connection:status() ~= 0 and self.connection:status() ~= 1 then

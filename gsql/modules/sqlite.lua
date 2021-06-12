@@ -30,7 +30,7 @@ local helpers = include('../helpers.lua')
 
 --- Just does nothing, because the "sql" lib is loaded by default by Gmod
 function MODULE:init(dbhost, dbname, dbuser, dbpass, port, callback)
-    callback(true, 'success')
+    callback(true, 'success', self)
 end
 
 --- Start a new query with the sqlite lib

@@ -46,12 +46,12 @@ function MODULE:init(dbhost, dbname, dbuser, dbpass, port, callback)
     self.connection, err = tmysql.initialize(dbhost, dbuser, dbpass, dbname, port or 3306, nil, CLIENT_MULTI_STATEMENTS)
     if err then
         file.Append('gsql_logs.txt', '[gsql][new] : ' .. err)
-        callback(false, 'err : ' .. err)
+        callback(false, 'err : ' .. err, nil)
         return
     end
     -- Gsql.cache[connUID] = self.connection
 
-    callback(true, 'success')
+    callback(true, 'success', self)
 end
 
 --- Starts a new query with the existing connection
