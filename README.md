@@ -20,6 +20,9 @@ gSQL - Simple Query Library
 * Security management: send your parameters, gSQL does the rest
 * Parameter system in unprepared queries
 
+## Projects using gSQL
+* λdvisor by @Erlite : https://github.com/Erlite/gmod-advisor
+
 ## Available functions
 
 **gSQL** includes a total of 5 functions that will allow you to interact with your SQL server in a basic way.
